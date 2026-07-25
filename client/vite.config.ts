@@ -11,6 +11,19 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['framer-motion', '@monaco-editor/react', 'recharts'],
+          'utils-vendor': ['@tanstack/react-query', 'react-hook-form', '@hookform/resolvers', 'zod'],
+          'report-vendor': ['jspdf', 'html2canvas'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {
