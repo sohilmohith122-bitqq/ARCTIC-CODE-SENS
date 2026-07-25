@@ -48,7 +48,7 @@ export function TopNav({ onOpenMobile }: { onOpenMobile: () => void }) {
           aria-label="Toggle theme"
         >
           <motion.span key={theme} initial={{ rotate: -30, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.25 }}>
-            {theme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </motion.span>
         </button>
 
