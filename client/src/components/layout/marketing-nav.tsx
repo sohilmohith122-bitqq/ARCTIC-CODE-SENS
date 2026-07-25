@@ -40,7 +40,7 @@ export function MarketingNav() {
             className="hidden h-10 w-10 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground sm:flex"
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
           <a
             href="https://github.com"
