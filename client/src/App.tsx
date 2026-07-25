@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom"
 import { useAuth } from "@/context/auth-context"
 import { AppLayout } from "@/components/layout/app-layout"
 import LandingPage from "@/pages/landing"
@@ -20,12 +20,13 @@ import ActivityMonitor from "@/pages/admin/activity-monitor"
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth()
+  const location = useLocation()
   if (loading) return (
     <div className="flex min-h-svh items-center justify-center">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
     </div>
   )
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" state={{ from: location }} replace />
 }
 
 export default function App() {

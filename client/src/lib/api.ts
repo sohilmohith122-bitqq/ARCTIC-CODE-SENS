@@ -265,7 +265,7 @@ export const api = {
   async review(payload: { code: string; language: Review["language"]; fileName?: string }): Promise<Review> {
     if (USE_MOCK) {
       await sleep(1400)
-      const result = analyzeCode(payload.code, payload.language)
+      const result = analyzeCode(payload.code, payload.language, storage.getUser()?.id)
       if (payload.fileName) result.fileName = payload.fileName
       saveReview(result)
       // Update user stats

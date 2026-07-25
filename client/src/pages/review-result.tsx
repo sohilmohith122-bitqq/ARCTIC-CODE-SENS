@@ -138,9 +138,14 @@ export default function ReviewResultPage() {
 
   if (isError || !review) return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-      <p className="text-muted">Review not found.</p>
-      <Button variant="outline" onClick={() => navigate("/app/history")}>
-        <ArrowLeft className="h-4 w-4" /> Back to history
+      <FileCode2 className="h-10 w-10 text-subtle" />
+      <p className="text-base font-semibold text-foreground">Review not available</p>
+      <p className="text-sm text-muted text-center max-w-sm">
+        This review was created in a different browser or device and can't be loaded here.
+        Run a new analysis to see results.
+      </p>
+      <Button variant="gradient" onClick={() => navigate("/app/review")}>
+        <FileCode2 className="h-4 w-4" /> New Review
       </Button>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -18,6 +18,8 @@ type FormValues = z.infer<typeof schema>
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/app/dashboard"
   const { login, googleLogin } = useAuth()
   const [submitting, setSubmitting] = useState(false)
 
@@ -31,7 +33,7 @@ export default function LoginPage() {
     try {
       await login(values)
       toast.success("Welcome back!")
-      navigate("/app/dashboard")
+      navigate(from, { replace: true })
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Login failed")
     } finally {
@@ -44,7 +46,7 @@ export default function LoginPage() {
     try {
       await googleLogin()
       toast.success("Signed in with Google")
-      navigate("/app/dashboard")
+      navigate(from, { replace: true })
     } catch {
       toast.error("Google sign-in failed")
     } finally {

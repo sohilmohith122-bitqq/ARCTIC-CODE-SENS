@@ -244,7 +244,7 @@ export const MOCK_ANALYTICS: Analytics = {
 }
 
 /** Lightweight heuristic analyzer that mimics the AI review engine. */
-export function analyzeCode(code: string, language: Language): Review {
+export function analyzeCode(code: string, language: Language, userId?: string): Review {
   const lines = code.split("\n")
   const loc = lines.filter((l) => l.trim().length > 0).length
   const suggestions: Suggestion[] = []
@@ -450,7 +450,7 @@ export function analyzeCode(code: string, language: Language): Review {
 
   return {
     id: `r_${Math.random().toString(36).slice(2, 10)}`,
-    userId: MOCK_USER.id,
+    userId: userId ?? MOCK_USER.id,
     language,
     originalCode: code,
     reviewedCode: code,
