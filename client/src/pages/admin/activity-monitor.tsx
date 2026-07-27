@@ -43,6 +43,7 @@ export default function ActivityMonitor() {
   const fetchActivities = async () => {
     try {
       const token = localStorage.getItem('arctic.token');
+      const base = import.meta.env.VITE_API_URL ?? 'http://localhost:5001';
       const params = new URLSearchParams();
       
       Object.entries(filters).forEach(([key, value]) => {
@@ -50,7 +51,7 @@ export default function ActivityMonitor() {
       });
 
       const response = await fetch(
-        `http://localhost:5000/admin/activities?${params}`,
+        `${base}/admin/activities?${params}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

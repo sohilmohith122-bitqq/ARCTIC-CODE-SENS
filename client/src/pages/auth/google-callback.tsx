@@ -8,7 +8,7 @@ import { api } from "@/lib/api"
 export default function GoogleCallbackPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { googleLogin } = useAuth()
+  const { validateSession } = useAuth()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -18,25 +18,16 @@ export default function GoogleCallbackPage() {
         const state = searchParams.get("state")
         const errorParam = searchParams.get("error")
 
-        // Handle OAuth errors
         if (errorParam) {
-          const errorDescription = searchParams.get("error_description") || errorParam
-          throw new Error(`OAuth error: ${errorDescription}`)
+          throw new Error(`OAuth error: ${searchParams.get("error_description") || errorParam}`)
         }
+        if (!code) throw new Error("No authorization code received")
+        if (!state) throw new Error("No state parameter received — possible CSRF attack")
 
-        if (!code) {
-          throw new Error("No authorization code received")
-        }
-
-        if (!state) {
-          throw new Error("No state parameter received - possible CSRF attack")
-        }
-
-        // Exchange code for tokens and authenticate
+        // Backend exchanges code for tokens, creates/updates user, returns JWT
         await api.googleCallback(code, state)
-
-        // Trigger login through auth context
-        await googleLogin()
+        // Sync auth context with the newly stored token/user
+        await validateSession()
 
         toast.success("Successfully signed in with Google!")
         navigate("/app/dashboard", { replace: true })
@@ -44,17 +35,12 @@ export default function GoogleCallbackPage() {
         const message = err instanceof Error ? err.message : "Authentication failed"
         setError(message)
         toast.error(message)
-        console.error("OAuth callback error:", err)
-
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          navigate("/login", { replace: true })
-        }, 3000)
+        setTimeout(() => navigate("/login", { replace: true }), 3000)
       }
     }
 
     handleCallback()
-  }, [searchParams, navigate, googleLogin])
+  }, [searchParams, navigate, validateSession])
 
   if (error) {
     return (

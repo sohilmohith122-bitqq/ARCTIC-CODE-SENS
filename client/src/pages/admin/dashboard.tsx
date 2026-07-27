@@ -37,11 +37,12 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('arctic.token');
+      const base = import.meta.env.VITE_API_URL ?? 'http://localhost:5001';
       const headers = { Authorization: `Bearer ${token}` };
 
       const [analyticsRes, usersRes] = await Promise.all([
-        fetch('http://localhost:5000/admin/analytics/dashboard', { headers }),
-        fetch('http://localhost:5000/admin/users', { headers })
+        fetch(`${base}/admin/analytics/dashboard`, { headers }),
+        fetch(`${base}/admin/users`, { headers })
       ]);
 
       if (analyticsRes.ok) {
@@ -63,7 +64,8 @@ export default function AdminDashboard() {
   const handleBlockUser = async (userId: string, newStatus: 'active' | 'blocked') => {
     try {
       const token = localStorage.getItem('arctic.token');
-      const response = await fetch(`http://localhost:5000/admin/users/${userId}/status`, {
+      const base = import.meta.env.VITE_API_URL ?? 'http://localhost:5001';
+      const response = await fetch(`${base}/admin/users/${userId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +87,8 @@ export default function AdminDashboard() {
 
     try {
       const token = localStorage.getItem('arctic.token');
-      const response = await fetch(`http://localhost:5000/admin/users/${userId}`, {
+      const base = import.meta.env.VITE_API_URL ?? 'http://localhost:5001';
+      const response = await fetch(`${base}/admin/users/${userId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

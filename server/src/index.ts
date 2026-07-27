@@ -16,7 +16,10 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json({ limit: '2mb' }));
 
 // Attach userId from token to every request

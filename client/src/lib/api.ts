@@ -2,17 +2,16 @@ import type { Analytics, AuthTokens, Review, User } from "@/types"
 import { analyzeCode, MOCK_USER } from "@/data/mock"
 import { deleteReview as deleteStored, getReview as getStored, listReviews, saveReview } from "./review-store"
 import { sleep } from "./utils"
-import { buildGoogleAuthUrl, handleGoogleCallback, getGoogleUserInfo } from "./oauth"
+import { buildGoogleAuthUrl } from "./oauth"
 
 /**
  * API client. In production set VITE_API_URL to your Express backend.
  * When the backend is unreachable, requests fall back to the mock engine
  * so the UI is fully explorable during development.
  */
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000"
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5001"
 const USE_MOCK = (import.meta.env.VITE_USE_MOCK ?? "false") !== "false"
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""
-const GOOGLE_CLIENT_SECRET = import.meta.env.VITE_GOOGLE_CLIENT_SECRET ?? ""
 const GOOGLE_REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI ?? `${window.location.origin}/auth/google/callback`
 
 const TOKEN_KEY = "arctic.token"
@@ -151,15 +150,14 @@ export const api = {
       storage.setUser(mockGoogleUser)
       return { user: mockGoogleUser, tokens: { accessToken: "mock-google-token" } }
     }
-
-    // Redirect to Google OAuth authorization
+    // Fetch auth URL from backend (backend generates state, keeps client secret)
     const authUrl = await buildGoogleAuthUrl({
       clientId: GOOGLE_CLIENT_ID,
       redirectUri: GOOGLE_REDIRECT_URI,
       scope: ["openid", "profile", "email"],
     })
     window.location.href = authUrl
-    return new Promise(() => {}) // Never resolves - page redirects
+    return new Promise(() => {}) // Never resolves — page redirects
   },
 
   async googleCallback(code: string, state: string): Promise<{ user: User; tokens: AuthTokens }> {
@@ -175,44 +173,29 @@ export const api = {
       storage.setUser(mockGoogleUser)
       return { user: mockGoogleUser, tokens: { accessToken: "mock-google-token" } }
     }
-
-    // Exchange code for tokens
-    const { accessToken, idToken, refreshToken } = await handleGoogleCallback(
-      code,
-      state,
-      GOOGLE_CLIENT_ID,
-      GOOGLE_CLIENT_SECRET,
-    )
-
-    // Get user info from Google
-    const googleUser = await getGoogleUserInfo(accessToken)
-
-    // Send to backend for user creation/update and JWT generation
-    const response = await request<{ user: User; tokens: AuthTokens }>("/auth/google/callback", {
+    // Backend handles code exchange — client secret never leaves the server
+    const data = await request<{
+      user: { id: string; googleId: string; email: string; fullName: string; profilePicture?: string; role: string; emailVerified: boolean };
+      tokens: { accessToken: string; refreshToken: string; expiresIn: number }
+    }>("/auth/google/callback", {
       method: "POST",
-      body: JSON.stringify({
-        code,
-        idToken,
-        googleUser: {
-          id: googleUser.id,
-          email: googleUser.email,
-          name: googleUser.name,
-          picture: googleUser.picture,
-          email_verified: googleUser.email_verified,
-        },
-      }),
+      body: JSON.stringify({ code, state }),
     })
-
-    // Store tokens and user
-    storage.setToken(response.tokens.accessToken)
-    storage.setUser(response.user)
-
-    // Store refresh token securely (in production, use HTTP-only cookie)
-    if (refreshToken) {
-      sessionStorage.setItem("refresh_token", refreshToken)
+    const user: User = {
+      ...MOCK_USER,
+      id: data.user.id,
+      googleId: data.user.googleId,
+      email: data.user.email,
+      name: data.user.fullName,
+      avatar: data.user.profilePicture,
+      role: data.user.role as User["role"],
+      emailVerified: data.user.emailVerified,
+      lastLoginAt: new Date().toISOString(),
     }
-
-    return response
+    storage.setToken(data.tokens.accessToken)
+    storage.setUser(user)
+    if (data.tokens.refreshToken) sessionStorage.setItem("refresh_token", data.tokens.refreshToken)
+    return { user, tokens: { accessToken: data.tokens.accessToken } }
   },
 
   logout() {
@@ -238,8 +221,10 @@ export const api = {
       await sleep(300)
       return { accessToken: "mock-access-token", expiresIn: 3600 }
     }
+    const refreshToken = sessionStorage.getItem("refresh_token")
     return request<{ accessToken: string; expiresIn: number }>("/auth/refresh", {
       method: "POST",
+      body: JSON.stringify({ refreshToken }),
     })
   },
 
