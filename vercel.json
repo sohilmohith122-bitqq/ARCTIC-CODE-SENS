@@ -1,0 +1,22 @@
+{
+  "buildCommand": "cd client && npm run build",
+  "outputDirectory": "client/dist",
+  "env": {
+    "VITE_API_URL": "@vite_api_url",
+    "VITE_USE_MOCK": "@vite_use_mock",
+    "VITE_GOOGLE_CLIENT_ID": "@vite_google_client_id",
+    "VITE_GOOGLE_REDIRECT_URI": "@vite_google_redirect_uri",
+    "VITE_THEME_STORAGE_KEY": "@vite_theme_storage_key",
+    "VITE_MOCK_USER_EMAIL": "@vite_mock_user_email"
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://arctic-code-sens.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
